@@ -4,8 +4,9 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Receiver is EIP712 {
+contract Receiver is EIP712, Ownable {
     using ECDSA for bytes32;
 
     struct MetaTx {
@@ -57,7 +58,7 @@ contract Receiver is EIP712 {
     }
 
     /// @dev Main batch transfer function for bundled meta transactions
-    function batchTransfer(MetaTxWithSig[] calldata _metaTxWithSig, uint256 gas) external {
+    function batchTransfer(MetaTxWithSig[] calldata _metaTxWithSig, uint256 gas) external onlyOwner {
         uint256 transactionsLength = _metaTxWithSig.length;
 
         for (uint256 i = 0; i < transactionsLength; ++i) {

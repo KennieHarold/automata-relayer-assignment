@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useReducer } from 'react';
-import { Container, Form, Button, Row, Col } from 'react-bootstrap';
+import { Container, Form, Button, Row, Col, Table } from 'react-bootstrap';
 import { Contract, JsonRpcSigner, ethers } from 'ethers';
 import Config, { TokenNames } from './config';
 import './App.css';
@@ -19,6 +19,7 @@ interface InitialState {
   recipient: string;
   isApproved: boolean;
   balances: Record<TokenNames, string> | null;
+  loading: boolean;
 }
 
 const initialState: InitialState = {
@@ -29,7 +30,8 @@ const initialState: InitialState = {
   amount: null,
   recipient: '',
   isApproved: false,
-  balances: null
+  balances: null,
+  loading: false
 };
 
 const domain = {
@@ -62,12 +64,17 @@ function App() {
       alert('Missing values!');
     }
 
+    updateEvent({ loading: true });
+
     const erc20 = new ethers.Contract(event.selectedToken, Config.erc20.abi, event.signer);
-    await erc20.approve(
-      Config.contract.address[Config.network],
-      ethers.parseEther(String(event.amount))
-    );
-    updateEvent({ isApproved: true });
+    await (
+      await erc20.approve(
+        Config.contract.address[Config.network],
+        ethers.parseEther(String(event.amount))
+      )
+    ).wait();
+
+    updateEvent({ isApproved: true, loading: false });
   };
 
   const handleTransfer = async (e: any) => {
@@ -93,6 +100,8 @@ function App() {
       nonce
     };
 
+    updateEvent({ loading: true });
+
     const signature = await event.signer?.signTypedData(domain, types, data);
 
     const response = await fetch(`${Config.apiUrl}/transaction`, {
@@ -115,8 +124,12 @@ function App() {
         selectedToken: '',
         amount: null,
         recipient: '',
-        isApproved: false
+        isApproved: false,
+        loading: false
       });
+    } else if (response.status === 429) {
+      updateEvent({ loading: false });
+      alert('One transaction only per batch please try again later on');
     }
   };
 
@@ -180,20 +193,11 @@ function App() {
   return (
     <Container>
       <Row className="d-flex justify-content-center">
-        <Col lg={4}>
+        <Col lg={5}>
           <div className="mt-5">
-            <div className="mb-4 d-flex flex-column">
+            <div className="mb-2 d-flex flex-column">
               <small className="text-muted mb">
                 {`Account: ${event?.account.slice(0, 5)}...${event?.account.slice(-4)}`}
-              </small>
-              <small className="text-muted mb">
-                {`Token1 balance: ${ethers.formatEther(String(event?.balances?.Token1 ?? 0))}`}
-              </small>
-              <small className="text-muted mb">
-                {`Token2 balance: ${ethers.formatEther(String(event?.balances?.Token2 ?? 0))}`}
-              </small>
-              <small className="text-muted mb">
-                {`Token3 balance: ${ethers.formatEther(String(event?.balances?.Token3 ?? 0))}`}
               </small>
             </div>
             <Form>
@@ -232,15 +236,47 @@ function App() {
               </Form.Group>
 
               {event.isApproved ? (
-                <Button variant="primary" type="submit" onClick={handleTransfer}>
+                <Button
+                  disabled={event.loading}
+                  variant="primary"
+                  type="submit"
+                  onClick={handleTransfer}
+                >
                   Transfer
                 </Button>
               ) : (
-                <Button variant="primary" type="submit" onClick={handleApprove}>
+                <Button
+                  disabled={event.loading}
+                  variant="outline-primary"
+                  type="submit"
+                  onClick={handleApprove}
+                >
                   Approve
                 </Button>
               )}
             </Form>
+
+            <div className="mt-4">
+              <div className="mb-2">
+                <small className="text-muted">Token Balances</small>
+              </div>
+              <Table bordered>
+                <thead>
+                  <tr>
+                    <th>Token1</th>
+                    <th>Token2</th>
+                    <th>Token3</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>{ethers.formatEther(String(event?.balances?.Token1 ?? 0))}</td>
+                    <td>{ethers.formatEther(String(event?.balances?.Token2 ?? 0))}</td>
+                    <td>{ethers.formatEther(String(event?.balances?.Token3 ?? 0))}</td>
+                  </tr>
+                </tbody>
+              </Table>
+            </div>
           </div>
         </Col>
       </Row>

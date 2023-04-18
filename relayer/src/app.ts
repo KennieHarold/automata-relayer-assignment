@@ -71,8 +71,16 @@ app.post('/transaction', async (req: Request<{}, {}, Transaction>, res) => {
     return res.status(400).send('Malformed message!');
   }
 
+  const isAlreadyTransacted = transactions.find(
+    (transaction) => transaction.metaTx.from === senderAsSigner
+  );
+
+  if (isAlreadyTransacted) {
+    return res.status(429).send('Too many requests');
+  }
+
   transactions.push({ metaTx: metaTxParsed, signature });
-  log.info(`Received transaction with data ${req.body}}`);
+  log.info(`Received transaction with data ${JSON.stringify(req.body)}}`);
   return res.status(201).send('Success!');
 });
 

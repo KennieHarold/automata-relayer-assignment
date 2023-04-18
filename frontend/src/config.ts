@@ -20,13 +20,13 @@ interface ConfigInterface {
 
 const Config: ConfigInterface = {
   apiUrl: 'http://localhost:8080',
-  network: 'localhost',
-  chainId: 31337,
+  network: 'goerli',
+  chainId: 5,
   domainName: 'AutomataRelayerDapp',
   contract: {
     address: {
-      localhost: '0xcbEAF3BDe82155F56486Fb5a1072cb8baAf547cc',
-      goerli: ''
+      localhost: '',
+      goerli: process.env.REACT_APP_RECEIVER_CONTRACT as string
     },
     gasLimit: 0,
     abi: [
@@ -101,20 +101,20 @@ const Config: ConfigInterface = {
   tokens: {
     Token1: {
       address: {
-        localhost: '0x7bc06c482DEAd17c0e297aFbC32f6e63d3846650',
-        goerli: ''
+        localhost: '',
+        goerli: process.env.REACT_APP_TOKEN1_CONTRACT as string
       }
     },
     Token2: {
       address: {
-        localhost: '0xc351628EB244ec633d5f21fBD6621e1a683B1181',
-        goerli: ''
+        localhost: '',
+        goerli: process.env.REACT_APP_TOKEN2_CONTRACT as string
       }
     },
     Token3: {
       address: {
-        localhost: '0xFD471836031dc5108809D173A067e8486B9047A3',
-        goerli: ''
+        localhost: '',
+        goerli: process.env.REACT_APP_TOKEN3_CONTRACT as string
       }
     }
   }

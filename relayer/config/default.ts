@@ -7,14 +7,14 @@ export default {
   domainName: 'AutomataRelayerDapp',
   host: 'localhost',
   privKey: process.env.PRIV_KEY,
-  rpcUrl: 'http://127.0.0.1:8545/',
-  chainId: 31337,
-  network: 'localhost',
-  relayerInterval: 1 * 60 * 1000, // 1 minute
+  rpcUrl: `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`,
+  chainId: 5,
+  network: 'goerli',
+  relayerInterval: 3 * 60 * 1000, // 3 minutes
   contract: {
     address: {
-      localhost: '0xcbEAF3BDe82155F56486Fb5a1072cb8baAf547cc',
-      goerli: ''
+      localhost: '',
+      goerli: process.env.RECEIVER_CONTRACT
     },
     gasLimit: 100000,
     abi: [

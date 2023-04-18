@@ -21,13 +21,15 @@ interface ContractConfig {
   tokenNames: string[];
   domainName: string;
   tokensMinted: string;
+  gasLimit: number;
 }
 
 const ContractConfig: ContractConfig = {
   contractName: 'Receiver',
   tokenNames: ['Token1', 'Token2', 'Token3'],
   domainName: 'AutomataRelayerDapp',
-  tokensMinted: '1000000'
+  tokensMinted: '1000000',
+  gasLimit: 100000
 };
 
 describe('Main test suite', function () {
@@ -139,11 +141,14 @@ describe('Main test suite', function () {
       const tx2Signature = user2._signTypedData(domain, types, txData2);
       const tx3Signature = user3._signTypedData(domain, types, txData3);
 
-      await receiverContract.batchTransfer([
-        { metaTx: txData1, signature: tx1Signature },
-        { metaTx: txData2, signature: tx2Signature },
-        { metaTx: txData3, signature: tx3Signature }
-      ]);
+      await receiverContract.batchTransfer(
+        [
+          { metaTx: txData1, signature: tx1Signature },
+          { metaTx: txData2, signature: tx2Signature },
+          { metaTx: txData3, signature: tx3Signature }
+        ],
+        ContractConfig.gasLimit
+      );
 
       expect(await tokens[0].balanceOf(receiver1.address)).to.eq(parseEther('1'));
       expect(await tokens[1].balanceOf(receiver2.address)).to.eq(parseEther('1'));
@@ -161,11 +166,14 @@ describe('Main test suite', function () {
       // We intentionally sign this transaction to a different user
       const tx3Signature = user2._signTypedData(domain, types, txData3);
 
-      await receiverContract.batchTransfer([
-        { metaTx: txData1, signature: tx1Signature },
-        { metaTx: txData2, signature: tx2Signature },
-        { metaTx: txData3, signature: tx3Signature }
-      ]);
+      await receiverContract.batchTransfer(
+        [
+          { metaTx: txData1, signature: tx1Signature },
+          { metaTx: txData2, signature: tx2Signature },
+          { metaTx: txData3, signature: tx3Signature }
+        ],
+        ContractConfig.gasLimit
+      );
 
       expect(await tokens[0].balanceOf(receiver1.address)).to.eq(parseEther('2'));
       expect(await tokens[1].balanceOf(receiver2.address)).to.eq(parseEther('2'));
